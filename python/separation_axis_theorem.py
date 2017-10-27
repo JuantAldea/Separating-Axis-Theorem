@@ -21,61 +21,75 @@
 
 # -*- coding: utf8 -*-
 
-def normalize(v):
-    from math import sqrt
-    norm = sqrt(v[0] ** 2 + v[1] ** 2)
-    return (v[0] / norm, v[1] / norm)
+from math import sqrt
 
-def dot(a, b):
-    return a[0] * b[0] + a[1] * b[1];
 
-def edge_direction(p0, p1):
-    return (p1[0] - p0[0], p1[1] - p0[1]);
+def normalize(vector):
+    """
+    :return: The vector scaled to a length of 1
+    """
+    norm = sqrt(vector[0] ** 2 + vector[1] ** 2)
+    return vector[0] / norm, vector[1] / norm
 
-def orthogonal(v):
-    return (v[1], -v[0])
+
+def dot(vector1, vector2):
+    """
+    :return: The dot (or scalar) product of the two vectors
+    """
+    return vector1[0] * vector2[0] + vector1[1] * vector2[1]
+
+
+def edge_direction(point0, point1):
+    """
+    :return: A vector going from point0 to point1
+    """
+    return point1[0] - point0[0], point1[1] - point0[1]
+
+
+def orthogonal(vector):
+    """
+    :return: A new vector which is orthogonal to the given vector
+    """
+    return vector[1], -vector[0]
+
 
 def vertices_to_edges(vertices):
-    return [edge_direction(vertices[i], vertices[(i + 1) % len(vertices)]) \
-        for i in range(len(vertices))]
+    """
+    :return: A list of the edges of the vertices as vectors
+    """
+    return [edge_direction(vertices[i], vertices[(i + 1) % len(vertices)])
+            for i in range(len(vertices))]
+
 
 def project(vertices, axis):
+    """
+    :return: A vector showing how much of the vertices lies along the axis
+    """
     dots = [dot(vertex, axis) for vertex in vertices]
     return [min(dots), max(dots)]
 
-def contains(n, range_):
-    a = range_[0]
-    b = range_[1]
-    if b < a:
-        a = range_[1]
-        b = range_[0]
-    return (n >= a) and (n <= b);
 
-def overlap(a, b):
-    if contains(a[0], b):
-        return True;
-    if contains(a[1], b):
-        return True;
-    if contains(b[0], a):
-        return True;
-    if contains(b[1], a):
-        return True;
-    return False;
+def overlap(projection1, projection2):
+    """
+    :return: Boolean indicating if the two projections overlap
+    """
+    return min(projection1) <= max(projection2) and \
+           min(projection2) <= max(projection1)
+
 
 def separating_axis_theorem(vertices_a, vertices_b):
-    edges_a = vertices_to_edges(vertices_a);
-    edges_b = vertices_to_edges(vertices_b);
-
-    edges = edges_a + edges_b
-
+    edges = vertices_to_edges(vertices_a) + vertices_to_edges(vertices_b)
     axes = [normalize(orthogonal(edge)) for edge in edges]
 
-    for i in range(len(axes)):
-        projection_a = project(vertices_a, axes[i])
-        projection_b = project(vertices_b, axes[i])
+    for axis in axes:
+        projection_a = project(vertices_a, axis)
+        projection_b = project(vertices_b, axis)
+
         overlapping = overlap(projection_a, projection_b)
+
         if not overlapping:
-            return False;
+            return False
+
     return True
 
 
@@ -84,9 +98,9 @@ def main():
     b_vertices = [(70, 70), (150, 70), (70, 150)]
     c_vertices = [(30, 30), (150, 70), (70, 150)]
 
-    print (separating_axis_theorem(a_vertices, b_vertices))
-    print (separating_axis_theorem(a_vertices, c_vertices))
-    print (separating_axis_theorem(b_vertices, c_vertices))
+    print(separating_axis_theorem(a_vertices, b_vertices))
+    print(separating_axis_theorem(a_vertices, c_vertices))
+    print(separating_axis_theorem(b_vertices, c_vertices))
 
 
 if __name__ == "__main__":
